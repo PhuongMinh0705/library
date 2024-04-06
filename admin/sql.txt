@@ -1,0 +1,80 @@
+DELIMITER //
+CREATE PROCEDURE InsertBook(IN bookname VARCHAR(255), 
+                             IN category INT, 
+                             IN author INT, 
+                             IN isbn VARCHAR(255), 
+                             IN price DECIMAL(10,2))
+BEGIN
+    INSERT INTO dulieu_sach(BookName, CatId, AuthorId, ISBNNumber, BookPrice)
+    VALUES(bookname, category, author, isbn, price);
+END //
+DELIMITER ;
+
+hàm check email
+DELIMITER //
+
+CREATE FUNCTION CheckEmailExists(email VARCHAR(255))
+RETURNS INT
+BEGIN
+    DECLARE email_count INT;
+    SELECT COUNT(*) INTO email_count FROM dulieu_docgia WHERE EmailId = email;
+    RETURN email_count;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+CREATE PROCEDURE `LaySachDocGiaDaMuon` (IN `student_id` VARCHAR(100))
+BEGIN
+    SELECT q.id, ds.BookName AS ten_sach, ds.ISBNNumber AS ma_isbn, q.IssuesDate AS ngay_muon, q.ReturnDate AS ngay_tra, q.fine AS phi_muon
+    FROM quanlymuontra q
+    INNER JOIN dulieu_sach ds ON q.BookId = ds.id
+    WHERE q.StudentID = student_id;
+END
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE TRIGGER before_insert_tacgia
+BEFORE INSERT ON dulieu_tacgia
+FOR EACH ROW
+BEGIN
+    DECLARE author_count INT;
+
+    SELECT COUNT(*) INTO author_count
+    FROM dulieu_tacgia
+    WHERE AuthorName = NEW.AuthorName;
+
+    IF author_count > 0 THEN
+        SIGNAL SQLSTATE '23000'
+        SET MESSAGE_TEXT = 'Tên Tác Giả đã tồn tại';
+    END IF;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE `LaySachChuaTra` (IN `student_id` VARCHAR(100))
+BEGIN
+    SELECT COUNT(*) AS DemSoSach
+    FROM quanlymuontra
+    WHERE StudentID = student_id AND RetrunStatus = 0;
+END//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE `LaySachDaMuon` (IN `student_id` VARCHAR(100))
+BEGIN
+    SELECT COUNT(*) AS DemSoSach
+    FROM quanlymuontra
+    WHERE StudentID = student_id;
+END//
+
+DELIMITER ;
+
+
